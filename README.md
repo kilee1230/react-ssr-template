@@ -36,7 +36,7 @@ A React 19 Server-Side Rendering template with TypeScript, Vite, and Express. De
 │       └── bot-protection.ts      # Bot/rate limiting middleware
 ├── dist/                    # Built client bundle (generated)
 ├── dist-server/             # Built server (generated)
-├── cdk/                     # AWS CDK infrastructure
+├── infra/                   # AWS CDK infrastructure
 ├── Dockerfile               # Container image for ECS
 ├── vite.config.ts           # Vite configuration
 └── deploy-static.sh         # S3 deployment script
@@ -103,7 +103,7 @@ app.use(
 pnpm run build
 
 # Deploy with CDK
-cd cdk
+cd infra
 npm install
 cdk bootstrap  # First time only
 cdk deploy
@@ -115,7 +115,7 @@ This will deploy:
 - S3 + CloudFront for static assets
 - Auto-scaling and health checks
 
-See [cdk/README.md](cdk/README.md) for details.
+See [infra/README.md](infra/README.md) for details.
 
 ### Option 2: Manual Deployment
 

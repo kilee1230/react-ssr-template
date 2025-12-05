@@ -14,7 +14,7 @@ AWS CDK infrastructure for deploying the React SSR application.
 
 ```bash
 # Install dependencies
-cd cdk
+cd infra
 npm install
 
 # Configure AWS credentials
@@ -33,7 +33,7 @@ pnpm run build
 pnpm run build:server
 
 # Deploy infrastructure
-cd cdk
+cd infra
 cdk deploy
 ```
 
