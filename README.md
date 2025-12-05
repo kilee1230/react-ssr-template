@@ -1,29 +1,45 @@
 # React SSR Template with Express
 
-A React 19 Server-Side Rendering template with TypeScript, Vite, and Zod. Designed for deployment to AWS ECS (backend) and S3 (static assets).
+A React 19 Server-Side Rendering template with TypeScript, Vite, and Express. Designed for deployment to AWS ECS (backend) and S3 (static assets).
 
 ## Tech Stack
 
 - React 19
 - TypeScript
 - Vite
-- Zod (validation)
 - Express
+- Tailwind CSS
+- Zod (validation)
 - pnpm
 
 ## Project Structure
 
 ```
 ├── src/
-│   ├── App.tsx         # React app component
-│   └── client.tsx      # Client-side hydration entry
+│   ├── App.tsx              # React app component
+│   ├── client.tsx           # Client-side hydration entry
+│   ├── index.css            # Global styles (Tailwind)
+│   └── types.ts             # Shared type definitions
 ├── server/
-│   └── index.ts        # Express SSR server
-├── dist/               # Built client bundle (generated)
-├── dist-server/        # Built server (generated)
-├── Dockerfile          # Container image for ECS
-├── vite.config.ts      # Vite configuration
-└── deploy-static.sh    # S3 deployment script
+│   ├── index.ts             # Server entry point
+│   ├── app.ts               # Express app configuration
+│   ├── routes/
+│   │   └── index.ts         # Route definitions
+│   ├── controllers/
+│   │   ├── app.controller.ts      # Main app controller (SSR)
+│   │   ├── health.controller.ts   # Health check endpoint
+│   │   └── notfound.controller.ts # 404 handler
+│   ├── services/
+│   │   ├── render.service.ts      # SSR rendering logic
+│   │   └── user.service.ts        # User data service
+│   └── middleware/
+│       └── bot-protection.ts      # Bot/rate limiting middleware
+├── dist/                    # Built client bundle (generated)
+├── dist-server/             # Built server (generated)
+├── cdk/                     # AWS CDK infrastructure
+├── Dockerfile               # Container image for ECS
+├── vite.config.ts           # Vite configuration
+└── deploy-static.sh         # S3 deployment script
 ```
 
 ## Development
@@ -32,14 +48,51 @@ A React 19 Server-Side Rendering template with TypeScript, Vite, and Zod. Design
 # Install dependencies
 pnpm install
 
-# Build client bundle
-pnpm run build
-
-# Run development server
+# Build and run development server
 pnpm run dev
 ```
 
 Visit http://localhost:3000
+
+### Available Scripts
+
+| Script                  | Description                      |
+| ----------------------- | -------------------------------- |
+| `pnpm run dev`          | Build and run development server |
+| `pnpm run build`        | Build both client and server     |
+| `pnpm run build:client` | Build client bundle with Vite    |
+| `pnpm run build:server` | Build server with TypeScript     |
+| `pnpm run start`        | Run production server            |
+| `pnpm run lint`         | Run ESLint                       |
+| `pnpm run lint:fix`     | Fix ESLint issues                |
+
+## Server Architecture
+
+The server follows a layered architecture:
+
+- **Routes** - Define URL endpoints and map to controllers
+- **Controllers** - Handle HTTP requests/responses
+- **Services** - Business logic and data operations
+- **Middleware** - Cross-cutting concerns (bot protection, etc.)
+
+### Bot Protection Middleware
+
+Built-in security middleware that provides:
+
+- Suspicious URL pattern detection (path traversal, XSS, SQL injection)
+- Malicious user agent blocking (scanners, exploit tools)
+- Rate limiting (configurable, default: 100 req/min per IP)
+
+```typescript
+import { botProtectionMiddleware } from "./middleware/bot-protection";
+
+app.use(
+  botProtectionMiddleware({
+    windowMs: 60000, // 1 minute window
+    maxRequests: 100, // max requests per window
+  })
+);
+```
 
 ## Deployment
 
@@ -48,7 +101,6 @@ Visit http://localhost:3000
 ```bash
 # Build the application
 pnpm run build
-pnpm run build:server
 
 # Deploy with CDK
 cd cdk
@@ -58,6 +110,7 @@ cdk deploy
 ```
 
 This will deploy:
+
 - ECS Fargate service with ALB
 - S3 + CloudFront for static assets
 - Auto-scaling and health checks
@@ -108,7 +161,7 @@ Or use CloudFront distribution URL for better performance.
 ## Architecture
 
 - **Express Server (ECS)**: Handles SSR and serves HTML
-- **S3 + CloudFront**: Serves static JS bundles
+- **S3 + CloudFront**: Serves static JS/CSS bundles
 - **Health Check**: `/health` endpoint for ECS health checks
 
 ## Production Considerations
@@ -118,3 +171,4 @@ Or use CloudFront distribution URL for better performance.
 - Set appropriate cache headers
 - Enable HTTPS/SSL certificates
 - Configure proper IAM roles for ECS tasks
+- Use Redis for rate limiting in multi-instance deployments
