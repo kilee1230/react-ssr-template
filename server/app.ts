@@ -1,4 +1,5 @@
 import express, { Express } from 'express';
+import { httpLogger } from './config/logger.js';
 import { botProtectionMiddleware } from './middleware/bot-protection.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { UserService } from './services/user.service.js';
@@ -23,6 +24,9 @@ export function createApp(): Express {
 
   // Trust proxy for correct IP detection behind ALB
   app.set('trust proxy', true);
+
+  // HTTP request logging
+  app.use(httpLogger);
 
   // Apply bot protection middleware
   app.use(botProtectionMiddleware({

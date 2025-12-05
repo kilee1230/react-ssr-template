@@ -1,4 +1,5 @@
 import { createApp } from "./app.js";
+import { logger } from "./config/logger.js";
 
 const PORT = process.env.PORT || 3000;
 const IS_PROD = process.env.NODE_ENV === "production";
@@ -8,13 +9,19 @@ const app = createApp();
 
 app
   .listen(PORT, () => {
-    console.log(`Server running on port http://localhost:${PORT}`);
-    console.log(`Environment: ${IS_PROD ? "production" : "development"}`);
-    console.log(`CDN URL: ${CDN_URL}`);
+    logger.info(
+      {
+        port: PORT,
+        environment: IS_PROD ? "production" : "development",
+        cdnUrl: CDN_URL,
+        url: `http://localhost:${PORT}`,
+      },
+      "Server started"
+    );
   })
   .on("error", (err: NodeJS.ErrnoException) => {
     if (err.code === "EADDRINUSE") {
-      console.error(
+      logger.error(
         `Port ${PORT} is already in use. Try: PORT=3001 pnpm run dev`
       );
       process.exit(1);

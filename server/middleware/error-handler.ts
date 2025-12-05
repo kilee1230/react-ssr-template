@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../config/logger.js';
 
 export function errorHandler(
   err: Error,
@@ -6,7 +7,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
-  console.error('Error:', err);
+  logger.error({ err }, 'Request error');
 
   const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
   const isProd = process.env.NODE_ENV === 'production';

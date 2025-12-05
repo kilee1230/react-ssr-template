@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
+import { logger } from '../config/logger.js';
 
 // Suspicious patterns
 const SUSPICIOUS_PATTERNS = [
@@ -44,7 +45,7 @@ export function botProtectionMiddleware(config: Partial<RateLimitConfig> = {}) {
     // 1. Check for suspicious patterns in URL
     for (const pattern of SUSPICIOUS_PATTERNS) {
       if (pattern.test(fullUrl)) {
-        console.warn(`[BOT PROTECTION] Blocked suspicious URL from ${ip}: ${fullUrl}`);
+        logger.warn({ ip, url: fullUrl }, 'Blocked suspicious URL');
         return res.status(403).json({ error: 'Forbidden' });
       }
     }
@@ -52,14 +53,14 @@ export function botProtectionMiddleware(config: Partial<RateLimitConfig> = {}) {
     // 2. Check for blocked user agents
     for (const pattern of BLOCKED_USER_AGENTS) {
       if (pattern.test(userAgent)) {
-        console.warn(`[BOT PROTECTION] Blocked user agent from ${ip}: ${userAgent}`);
+        logger.warn({ ip, userAgent }, 'Blocked user agent');
         return res.status(403).json({ error: 'Forbidden' });
       }
     }
 
     // 3. Block requests with no user agent
     if (!userAgent) {
-      console.warn(`[BOT PROTECTION] Blocked empty user agent from ${ip}`);
+      logger.warn({ ip }, 'Blocked empty user agent');
       return res.status(403).json({ error: 'Forbidden' });
     }
 
@@ -70,7 +71,7 @@ export function botProtectionMiddleware(config: Partial<RateLimitConfig> = {}) {
     if (clientData) {
       if (now < clientData.resetTime) {
         if (clientData.count >= maxRequests) {
-          console.warn(`[BOT PROTECTION] Rate limit exceeded for ${ip}`);
+          logger.warn({ ip, count: clientData.count }, 'Rate limit exceeded');
           return res.status(429).json({ error: 'Too many requests' });
         }
         clientData.count++;
