@@ -1,0 +1,7 @@
+node_modules
+dist
+dist-server
+*.config.js
+*.config.ts
+cdk/cdk.out
+cdk/node_modules
