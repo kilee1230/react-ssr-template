@@ -1,5 +1,6 @@
 import express, { Express } from 'express';
 import { botProtectionMiddleware } from './middleware/bot-protection.js';
+import { errorHandler } from './middleware/error-handler.js';
 import { UserService } from './services/user.service.js';
 import { RenderService } from './services/render.service.js';
 import { HealthController } from './controllers/health.controller.js';
@@ -44,6 +45,9 @@ export function createApp(): Express {
   // Setup routes
   const routes = createRoutes(healthController, appController, notFoundController);
   app.use(routes);
+
+  // Error handler (must be last)
+  app.use(errorHandler);
 
   return app;
 }
