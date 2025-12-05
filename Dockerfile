@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:22-alpine
 
 RUN npm install -g pnpm
 
@@ -13,4 +13,4 @@ RUN pnpm run build:server
 
 EXPOSE 3000
 
-CMD ["node", "dist-server/index.js"]
+CMD ["node", "dist-server/server/index.js"]
