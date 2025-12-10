@@ -20,6 +20,8 @@ export function createApp(): Express {
   // Configuration
   const CDN_URL = process.env.CDN_URL || "/static";
   const IS_PROD = process.env.NODE_ENV === "production";
+  const VITE_DEV_SERVER =
+    process.env.VITE_DEV_SERVER || "http://localhost:5173";
 
   // Initialize Express app
   const app = express();
@@ -27,18 +29,30 @@ export function createApp(): Express {
   // Trust proxy for correct IP detection behind ALB
   app.set("trust proxy", true);
 
-  // Security headers
+  // Security headers - relaxed in development for Vite HMR
+  const TAILWIND_CDN = "https://cdn.tailwindcss.com";
+  const cspDirectives = IS_PROD
+    ? {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", CDN_URL, TAILWIND_CDN],
+        styleSrc: ["'self'", "'unsafe-inline'", CDN_URL],
+        imgSrc: ["'self'", "data:", CDN_URL],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'", CDN_URL],
+      }
+    : {
+        defaultSrc: ["'self'", VITE_DEV_SERVER],
+        scriptSrc: ["'self'", "'unsafe-inline'", VITE_DEV_SERVER, TAILWIND_CDN],
+        styleSrc: ["'self'", "'unsafe-inline'", VITE_DEV_SERVER],
+        imgSrc: ["'self'", "data:", VITE_DEV_SERVER],
+        connectSrc: ["'self'", VITE_DEV_SERVER, "ws://localhost:5173"],
+        fontSrc: ["'self'", VITE_DEV_SERVER],
+      };
+
   app.use(
     helmet({
       contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'", CDN_URL],
-          styleSrc: ["'self'", "'unsafe-inline'", CDN_URL],
-          imgSrc: ["'self'", "data:", CDN_URL],
-          connectSrc: ["'self'"],
-          fontSrc: ["'self'", CDN_URL],
-        },
+        directives: cspDirectives,
       },
       crossOriginEmbedderPolicy: false, // Disable if you need to embed external resources
     })
