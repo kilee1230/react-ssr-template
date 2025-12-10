@@ -6,10 +6,12 @@ A React 19 Server-Side Rendering template with TypeScript, Vite, and Express. De
 
 - React 19
 - TypeScript
-- Vite
+- Vite (with HMR)
 - Express
 - Tailwind CSS
 - Zod (validation)
+- Pino (logging)
+- Nodemon + tsx (dev server)
 - pnpm
 
 ## Project Structure
@@ -17,12 +19,15 @@ A React 19 Server-Side Rendering template with TypeScript, Vite, and Express. De
 ```
 ├── src/
 │   ├── App.tsx              # React app component
+│   ├── NotFound.tsx         # 404 page component
 │   ├── client.tsx           # Client-side hydration entry
 │   ├── index.css            # Global styles (Tailwind)
 │   └── types.ts             # Shared type definitions
 ├── server/
 │   ├── index.ts             # Server entry point
 │   ├── app.ts               # Express app configuration
+│   ├── config/
+│   │   └── logger.ts        # Pino logger configuration
 │   ├── routes/
 │   │   └── index.ts         # Route definitions
 │   ├── controllers/
@@ -33,12 +38,14 @@ A React 19 Server-Side Rendering template with TypeScript, Vite, and Express. De
 │   │   ├── render.service.ts      # SSR rendering logic
 │   │   └── user.service.ts        # User data service
 │   └── middleware/
-│       └── bot-protection.ts      # Bot/rate limiting middleware
+│       ├── bot-protection.ts      # Bot/rate limiting middleware
+│       └── error-handler.ts       # Global error handler
 ├── dist/                    # Built client bundle (generated)
 ├── dist-server/             # Built server (generated)
 ├── infra/                   # AWS CDK infrastructure
 ├── Dockerfile               # Container image for ECS
 ├── vite.config.ts           # Vite configuration
+├── nodemon.json             # Nodemon configuration
 └── deploy-static.sh         # S3 deployment script
 ```
 
@@ -48,23 +55,35 @@ A React 19 Server-Side Rendering template with TypeScript, Vite, and Express. De
 # Install dependencies
 pnpm install
 
-# Build and run development server
+# Start development server with hot reload
 pnpm run dev
 ```
 
+This runs **two servers concurrently**:
+
+- **Vite dev server** (port 5173) - React HMR for instant UI updates
+- **Express server** (port 3000) - Backend with nodemon auto-restart
+
 Visit http://localhost:3000
+
+### Hot Reload
+
+- **Frontend changes** (`src/`): Vite HMR updates the browser instantly without page refresh
+- **Backend changes** (`server/`): Nodemon automatically restarts the Express server
 
 ### Available Scripts
 
-| Script                  | Description                      |
-| ----------------------- | -------------------------------- |
-| `pnpm run dev`          | Build and run development server |
-| `pnpm run build`        | Build both client and server     |
-| `pnpm run build:client` | Build client bundle with Vite    |
-| `pnpm run build:server` | Build server with TypeScript     |
-| `pnpm run start`        | Run production server            |
-| `pnpm run lint`         | Run ESLint                       |
-| `pnpm run lint:fix`     | Fix ESLint issues                |
+| Script                  | Description                                    |
+| ----------------------- | ---------------------------------------------- |
+| `pnpm run dev`          | Start dev server with hot reload (recommended) |
+| `pnpm run dev:vite`     | Start only Vite dev server                     |
+| `pnpm run dev:server`   | Start only Express with nodemon                |
+| `pnpm run build`        | Build both client and server                   |
+| `pnpm run build:client` | Build client bundle with Vite                  |
+| `pnpm run build:server` | Build server with TypeScript                   |
+| `pnpm run start`        | Run production server                          |
+| `pnpm run lint`         | Run ESLint                                     |
+| `pnpm run lint:fix`     | Fix ESLint issues                              |
 
 ## Server Architecture
 
@@ -73,7 +92,27 @@ The server follows a layered architecture:
 - **Routes** - Define URL endpoints and map to controllers
 - **Controllers** - Handle HTTP requests/responses
 - **Services** - Business logic and data operations
-- **Middleware** - Cross-cutting concerns (bot protection, etc.)
+- **Middleware** - Cross-cutting concerns (bot protection, error handling)
+- **Config** - Logger and other configuration
+
+### Logging
+
+Uses [Pino](https://github.com/pinojs/pino) for structured JSON logging:
+
+```typescript
+import { logger } from "./config/logger.js";
+
+logger.info({ userId: 123 }, "User logged in");
+logger.error({ err: error }, "Something went wrong");
+logger.debug({ data }, "Debug information");
+```
+
+Features:
+
+- Pretty printing in development, JSON in production
+- Automatic PII redaction (emails, auth headers, cookies)
+- HTTP request logging with `pino-http`
+- Configurable log level via `LOG_LEVEL` env var
 
 ### Bot Protection Middleware
 
@@ -93,6 +132,17 @@ app.use(
   })
 );
 ```
+
+## Environment Variables
+
+| Variable           | Default                       | Description                              |
+| ------------------ | ----------------------------- | ---------------------------------------- |
+| `NODE_ENV`         | `development`                 | Environment (`production`/`development`) |
+| `PORT`             | `3000`                        | Server port                              |
+| `CDN_URL`          | `/static`                     | URL prefix for static assets             |
+| `LOG_LEVEL`        | `debug` (dev) / `info` (prod) | Pino log level                           |
+| `VITE_DEV_SERVER`  | `http://localhost:5173`       | Vite dev server URL (dev only)           |
+| `SHUTDOWN_TIMEOUT` | `10000`                       | Graceful shutdown timeout (ms)           |
 
 ## Deployment
 
