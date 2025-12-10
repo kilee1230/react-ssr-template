@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
-import { UserService } from '../services/user.service.js';
-import { RenderService } from '../services/render.service.js';
+import { Request, Response } from "express";
+import { UserService } from "../services/user.service.js";
+import { RenderService } from "../services/render.service.js";
+import { logger } from "../config/logger.js";
 
 export class AppController {
   constructor(
@@ -14,8 +15,8 @@ export class AppController {
       const html = this.renderService.renderHTML(serverData);
       res.send(html);
     } catch (error) {
-      console.error('Error rendering app:', error);
-      res.status(500).send('Internal Server Error');
+      logger.error({ err: error }, "Error rendering app");
+      res.status(500).send("Internal Server Error");
     }
   }
 }

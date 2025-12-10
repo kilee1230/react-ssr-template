@@ -18,7 +18,6 @@ export class UserService {
   async getServerData(): Promise<ServerData> {
     const users = await this.getUsers();
 
-    console.log("users", users);
     return {
       users,
       timestamp: Date.now(),

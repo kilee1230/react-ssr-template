@@ -15,8 +15,6 @@ export default function App({ serverData }: AppProps) {
 
   const validated = ServerDataSchema.parse(serverData);
 
-  console.log({ validated });
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container px-4 py-12 mx-auto">
