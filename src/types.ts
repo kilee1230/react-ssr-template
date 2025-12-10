@@ -15,3 +15,15 @@ export const ServerDataSchema = z.object({
 });
 
 export type ServerData = z.infer<typeof ServerDataSchema>;
+
+// 404 Not Found data
+export const NotFoundDataSchema = z.object({
+  type: z.literal("notfound"),
+  method: z.string(),
+  path: z.string(),
+});
+
+export type NotFoundData = z.infer<typeof NotFoundDataSchema>;
+
+// Union type for all page data
+export type PageData = ServerData | NotFoundData;

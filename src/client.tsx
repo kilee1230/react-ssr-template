@@ -1,14 +1,26 @@
-import { createRoot } from 'react-dom/client';
-import App from './App';
-import { ServerData } from './types';
-import './index.css';
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import NotFound from "./NotFound";
+import { PageData, NotFoundData } from "./types";
+import "./index.css";
 
 declare global {
   interface Window {
-    __SERVER_DATA__: ServerData;
+    __SERVER_DATA__: PageData;
   }
 }
 
-const serverData = window.__SERVER_DATA__;
+const pageData = window.__SERVER_DATA__;
 
-createRoot(document.getElementById('root')!).render(<App serverData={serverData} />);
+// Check if it's a 404 page
+const isNotFound = (data: PageData): data is NotFoundData => {
+  return "type" in data && data.type === "notfound";
+};
+
+createRoot(document.getElementById("root")!).render(
+  isNotFound(pageData) ? (
+    <NotFound method={pageData.method} path={pageData.path} />
+  ) : (
+    <App serverData={pageData} />
+  )
+);

@@ -94,7 +94,7 @@ export function createApp(): Express {
   // Initialize controllers
   const healthController = new HealthController();
   const appController = new AppController(userService, renderService);
-  const notFoundController = new NotFoundController();
+  const notFoundController = new NotFoundController(renderService);
 
   // Setup routes
   const routes = createRoutes(

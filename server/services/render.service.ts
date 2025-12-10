@@ -1,4 +1,4 @@
-import { ServerData } from "../../src/types.js";
+import { ServerData, NotFoundData } from "../../src/types.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
@@ -84,6 +84,29 @@ export class RenderService {
         <div id="root"></div>
         <script>
           window.__SERVER_DATA__ = ${JSON.stringify(serverData)};
+        </script>
+        ${scriptTag}
+      </body>
+    </html>
+  `;
+  }
+
+  renderNotFound(notFoundData: NotFoundData): string {
+    const { scriptTag, cssTag } = this.getAssetTags();
+
+    return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>404 - Not Found</title>
+        ${cssTag}
+      </head>
+      <body>
+        <div id="root"></div>
+        <script>
+          window.__SERVER_DATA__ = ${JSON.stringify(notFoundData)};
         </script>
         ${scriptTag}
       </body>
